@@ -8,6 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Heart, Eye, EyeOff, Mail, Lock } from "lucide-react"
 import Link from "next/link"
+import {supabase} from "@/lib/supabaseClient";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -64,7 +67,9 @@ export default function LoginPage() {
                 <Separator className="w-full" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-500">Or continue with email</span>
+                <span className="bg-white px-2 text-slate-500"  onClick={async () => {
+                  await supabase.auth.signInWithOAuth({ provider: 'google' })
+                }}>Or continue with email</span>
               </div>
             </div>
 
@@ -135,7 +140,32 @@ export default function LoginPage() {
 
               <Button
                 className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white py-6"
-                onClick={() => (window.location.href = "/dashboard")}
+                onClick={async () => {
+                  const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                  })
+
+                  if (error) {
+                    alert(error.message)
+                    return
+                  }
+
+                  // ✅ Role-based redirect
+                  const role = data.user?.user_metadata?.role || "user"
+                  console.log("Logged in role:", role)
+
+                  if (role === "admin") {
+                    window.location.href = "/admin-dashboard"
+                  } else if (role === "therapist") {
+                    window.location.href = "/therapist-dashboard"
+                  } else {
+                    window.location.href = "/dashboard"
+                  }
+                }}
+
+
+
               >
                 Sign In
               </Button>
@@ -144,7 +174,7 @@ export default function LoginPage() {
             <div className="text-center">
               <p className="text-slate-600">
                 Don't have an account?{" "}
-                <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium">
+                <Link href="/signup" className="text-blue-600 hover:text-blue-700 font-medium" >
                   Sign up
                 </Link>
               </p>
