@@ -4,10 +4,35 @@ import { useState } from "react"
 import { motion } from "framer-motion"
 import { Play, Heart, Wind, Coffee, Package, Sparkles, Cloud } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
+import { useRouter } from "next/navigation"
 
-export default function Component() {
+interface MindMendHubProps {
+  onCardClick?: (cardId: string) => void
+}
+
+export default function Component({ onCardClick }: MindMendHubProps = {}) {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null)
 
+  const routeMap = {
+    "video-library": "",
+    "calm-cat": "/calm-cat",
+    "guided-breathing": "/guided-breathing",
+    "mindful-sipping": "/mindful-sipping",
+    "worry-box": "/worry-box",
+    "loud-thoughts": "/cloud-thoughts",
+  }
+  const handleCardClick = (cardId: string) => {
+    if (onCardClick) {
+      onCardClick(cardId)
+    } else {
+      const route = routeMap[cardId as keyof typeof routeMap]
+      if (route) {
+        router.push(route)
+      } else {
+        console.warn(`No route found for card: ${cardId}`)
+      }
+    }
+  }
   const cards = [
     {
       id: "video-library",
@@ -97,7 +122,8 @@ export default function Component() {
                 onHoverEnd={() => setHoveredCard(null)}
                 className="relative"
               >
-                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                <Card className="overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group" 
+                  onClick={() => handleCardClick(card.id)}>
                   <motion.div
                     className={`absolute inset-0 bg-gradient-to-br ${
                       hoveredCard === card.id ? card.hoverGradient : card.gradient
